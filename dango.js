@@ -9,7 +9,7 @@
   this.audioCtx = null;
   this.tempo = 800;
   this.running = true;
-  this.blockRevealed = false; // thêm dòng này
+  this.blockRevealed = false;
   setTimeout(() => this.startBoot(), 400);
 }
 
@@ -229,8 +229,7 @@
       const pet = document.createElement("img");
       pet.src = imgSrc;
 
-      this.pet = pet; // 🔥 THÊM DÒNG NÀY
-
+      this.pet = pet;
       pet.style.position = "fixed";
       pet.style.width = "80px";
       pet.style.height = "auto";
