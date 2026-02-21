@@ -26,113 +26,212 @@
     ] : []
   };
 }
+
+/* ================= START BOOT ================= */
+
+async startBoot() {
+  this.createTerminal();
+  this.startHeartbeat();
+
+  await this.runInstaller();
+  await this.closeTerminal();
+
+  await this.stopHeartbeat();
   
-    /* ================= START ================= */
+  setTimeout (() => { 
+  this.makeSpriteTalk();
+  }, 3000);
+}
 
-    startBoot() {
-      this.createTerminal();
-      this.startHeartbeat();
-      this.fakeLoading();
+/* ================= TERMINAL UI ================= */
 
-      setTimeout(() => {
-        this.finishBoot();
-      }, 5000);
+createTerminal() {
+
+  this.termWindow = document.createElement("div");
+
+  Object.assign(this.termWindow.style, {
+    position: "fixed",
+    width: "600px",
+    height: "360px",
+    background: "#0c0c0c",
+    borderRadius: "12px",
+    boxShadow: "0 0 40px rgba(0,0,0,0.6)",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%) scale(0.95)",
+    color: "#00ff88",
+    fontFamily: "Consolas, monospace",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    opacity: "0",
+    zIndex: "999999",
+    transition: "all 0.4s ease"
+  });
+
+  const titleBar = document.createElement("div");
+  titleBar.textContent = "Pet Installer";
+  Object.assign(titleBar.style, {
+    background: "#1e1e1e",
+    padding: "8px 12px",
+    fontSize: "14px",
+    color: "#aaa"
+  });
+
+  this.termContent = document.createElement("div");
+  Object.assign(this.termContent.style, {
+    flex: "1",
+    padding: "12px",
+    overflowY: "auto",
+    fontSize: "14px"
+  });
+
+  this.termWindow.appendChild(titleBar);
+  this.termWindow.appendChild(this.termContent);
+  document.body.appendChild(this.termWindow);
+
+  // fade in
+  requestAnimationFrame(() => {
+    this.termWindow.style.opacity = "1";
+    this.termWindow.style.transform = "translate(-50%, -50%) scale(1)";
+  });
+}
+
+
+async closeTerminal() {
+
+  this.termWindow.style.opacity = "0";
+  this.termWindow.style.transform = "translate(-50%, -50%) scale(0.95)";
+
+  await new Promise(r => setTimeout(r, 500));
+
+  this.termWindow.remove();
+}
+
+
+/* ================= HEARTBEAT SYSTEM ================= */
+
+startHeartbeat() {
+
+  this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  this.tempo = 900;
+  this.heartbeatRunning = true;
+
+  const beat = () => {
+    if (!this.heartbeatRunning) return;
+
+    const osc = this.audioCtx.createOscillator();
+    const gain = this.audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.value = 50;
+
+    gain.gain.setValueAtTime(0.8, this.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      this.audioCtx.currentTime + 0.25
+    );
+
+    osc.connect(gain);
+    gain.connect(this.audioCtx.destination);
+
+    osc.start();
+    osc.stop(this.audioCtx.currentTime + 0.25);
+
+    setTimeout(beat, this.tempo);
+  };
+
+  beat();
+}
+
+updateHeartbeat(progress) {
+
+  if (!this.heartbeatRunning) return;
+
+  if (progress < 50) {
+    this.tempo = 900 - (progress * 5);
+  } else if (progress < 90) {
+    this.tempo = 650 - ((progress - 50) * 10);
+  } else {
+    this.tempo = 200 - ((progress - 90) * 8);
+  }
+
+  if (this.tempo < 60) {
+    this.tempo = 60;
+  }
+}
+
+stopHeartbeat() {
+  this.heartbeatRunning = false;
+
+  if (this.audioCtx) {
+    this.audioCtx.close();
+  }
+}
+
+
+/* ================= INSTALLER ================= */
+
+async runInstaller() {
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  const addLine = text => {
+    const line = document.createElement("div");
+    line.textContent = text;
+    this.termContent.appendChild(line);
+    this.termContent.scrollTop = this.termContent.scrollHeight;
+  };
+
+  addLine("install Pet Self-Awareness ver 1.0");
+  await sleep(5000);
+
+  addLine("installing...");
+  await sleep(6000);
+
+  const progressText = document.createElement("div");
+  this.termContent.appendChild(progressText);
+
+  const barContainer = document.createElement("div");
+  Object.assign(barContainer.style, {
+    width: "100%",
+    height: "10px",
+    background: "#222",
+    marginTop: "5px"
+  });
+
+  const bar = document.createElement("div");
+  Object.assign(bar.style, {
+    width: "0%",
+    height: "100%",
+    background: "#00ff88",
+    transition: "width 0.1s"
+  });
+
+  barContainer.appendChild(bar);
+  this.termContent.appendChild(barContainer);
+
+  for (let i = 1; i <= 100; i++) {
+
+    progressText.textContent = "loading " + i + "%";
+    bar.style.width = i + "%";
+
+    this.updateHeartbeat(i);
+
+    if (i === 66) {
+      await sleep(1200); // tâm lý đứng lại
     }
 
-    /* ================= TERMINAL ================= */
+    await sleep(40);
+  }
 
-    createTerminal() {
-      this.term = document.createElement("div");
+  addLine("Self-Awareness enabled.");
 
-      Object.assign(this.term.style, {
-        position: "fixed",
-        inset: "0",
-        background: "black",
-        color: "#00ff00",
-        fontFamily: "monospace",
-        fontSize: "14px",
-        padding: "20px",
-        zIndex: "99999",
-        overflow: "hidden"
-      });
-
-      document.body.appendChild(this.term);
-    }
-
-    log(text) {
-      const line = document.createElement("div");
-      line.textContent = text;
-      this.term.appendChild(line);
-    }
-
-    fakeLoading() {
-      const lines = [
-        "Initializing extension...",
-        "Binding runtime...",
-        "Calibrating presence...",
-        "Finalizing..."
-      ];
-
-      const interval = setInterval(() => {
-        if (!this.running) {
-          clearInterval(interval);
-          return;
-        }
-
-        const randomLine = lines[Math.floor(Math.random() * lines.length)];
-        this.log(randomLine);
-
-        this.tempo -= 40;
-        if (this.tempo < 120) this.tempo = 120;
-
-      }, 200);
-    }
-
-    /* ================= HEARTBEAT ================= */
-
-    startHeartbeat() {
-      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-      const beat = () => {
-        if (!this.running) return;
-
-        const osc = this.audioCtx.createOscillator();
-        const gain = this.audioCtx.createGain();
-
-        osc.type = "sine";
-        osc.frequency.value = 55;
-
-        gain.gain.setValueAtTime(1, this.audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(
-          0.001,
-          this.audioCtx.currentTime + 0.2
-        );
-
-        osc.connect(gain);
-        gain.connect(this.audioCtx.destination);
-
-        osc.start();
-        osc.stop(this.audioCtx.currentTime + 0.2);
-
-        setTimeout(beat, this.tempo);
-      };
-
-      beat();
-    }
-
-    /* ================= FINISH ================= */
-
-    finishBoot() {
-      this.running = false;
-
-      if (this.audioCtx) this.audioCtx.close();
-      if (this.term) this.term.remove();
-
-      setTimeout(() => {
-        this.makeSpriteTalk();
-      }, 3000);
-    }
-
+  // đập loạn 2 giây
+  this.tempo = 150;
+  await sleep(2000);
+}
+  
     /* ================= SPRITE TALK ================= */
 
     makeSpriteTalk() {
@@ -446,8 +545,8 @@
     bubble.remove();
     await sleep(0);
 
-this.revealBlock();
-this.spawnBlockInWorkspace();
+    this.revealBlock();
+    this.spawnBlockInWorkspace();
 
     localStorage.setItem("horrorColor", favColor);
   })();
