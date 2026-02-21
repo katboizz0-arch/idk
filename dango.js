@@ -9,7 +9,7 @@
   this.audioCtx = null;
   this.tempo = 800;
   this.running = true;
-  this.blockRevealed = false;
+  this.blockRevealed = false; // thêm dòng này
   setTimeout(() => this.startBoot(), 400);
 }
 
@@ -19,9 +19,9 @@
     name: " ",
     blocks: this.blockRevealed ? [
       {
-        opcode: "mysteryBlock",
+        opcode: "theBegin",
         blockType: Scratch.BlockType.COMMAND,
-        text: "mysterious gift"
+        text: "the begin"
       }
     ] : []
   };
@@ -229,7 +229,8 @@
       const pet = document.createElement("img");
       pet.src = imgSrc;
 
-      this.pet = pet;
+      this.pet = pet; // 🔥 THÊM DÒNG NÀY
+
       pet.style.position = "fixed";
       pet.style.width = "80px";
       pet.style.height = "auto";
@@ -467,7 +468,7 @@ revealBlock() {
   this.blockRevealed = true;
   Scratch.vm.extensionManager.refreshBlocks();
 }
-mysteryBlock = () => {
+theBegin = () => {
   this.showCenterWindow();
 }
 
@@ -483,7 +484,7 @@ spawnBlockInWorkspace() {
       <xml xmlns="https://developers.google.com/blockly/xml">
         <block type="event_whenflagclicked" x="-300" y="100" id="eventBlock">
           <next>
-            <block type="dangopet_mysteryBlock" id="mysteryBlock"></block>
+            <block type="dangopet_theBegin" id="theBegin"></block>
           </next>
         </block>
       </xml>
@@ -534,11 +535,11 @@ showCenterWindow() {
 
       web.innerHTML = `
         <div style="background:#222;padding:8px 12px;border-bottom:1px solid #333;">
-          web.world
+          story.exe
         </div>
         <div style="padding:20px;">
-          <h2>Welcome.</h2>
-          <p>You pressed the flag.</p>
+          <h2>the story of dango</h2>
+          <button>click here to next page</button>
         </div>
       `;
 
